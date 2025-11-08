@@ -1,0 +1,8 @@
+Name,Age,Join_Date,Email,Department,Phone,City,Country,Salary,Remarks
+Subodh,21.0,2024/05/10,subodh@,IT,9876543210.0,Jaipur,India,50000,Good
+Amit,22.0,10-05-2024,amit@example.com,HR,9123456780.0,Delhi,India,45000,Average
+Riya,20.0,2024-05-11,,Finance,9768519275.333334,Mumbai,India,48000,Excellent
+Karan,23.0,12-05-2024,karan@,Marketing,9988776655.0,Bangalore,India,47000,Good
+Neha,21.833333333333332,2024/05/13,neha@example.com,IT,9871234567.0,Pune,India,51000,Average
+Rahul,24.0,2024-05-14,rahul@gmail.com,Finance,9874563210.0,Chennai,India,50000,Good
+Sneha,21.0,,sneha@example.com,HR,9876541230.0,Kolkata,India,46000,Average
