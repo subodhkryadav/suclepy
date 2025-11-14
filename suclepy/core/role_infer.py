@@ -1,18 +1,31 @@
-"""
-Role inference module for suclepy
-Infers column roles: ID, numeric, categorical, date
-"""
+# suclepy/core/role_infer.py
 
 import pandas as pd
-from suclepy.core.utils import infer_column_role
+from .validator import is_valid_email, is_valid_date, is_numeric
 
 class RoleInfer:
     def __init__(self, df: pd.DataFrame):
-        self.df = df
+        self.df = df.copy()
         self.roles = {}
 
-    def run(self):
-        """Infer roles for all columns"""
+    def infer(self):
+        """
+        Infer column roles/types for each column.
+        Possible roles: numeric, string, email, date
+        """
         for col in self.df.columns:
-            self.roles[col] = infer_column_role(self.df[col])
+            sample = self.df[col].dropna().iloc[:10]  # check first 10 non-null
+            if sample.empty:
+                self.roles[col] = "unknown"
+                continue
+
+            if all(is_numeric(v) for v in sample):
+                self.roles[col] = "numeric"
+            elif col.lower() == "email" or all(is_valid_email(v) for v in sample):
+                self.roles[col] = "email"
+            elif all(is_valid_date(v) for v in sample):
+                self.roles[col] = "date"
+            else:
+                self.roles[col] = "string"
+
         return self.roles

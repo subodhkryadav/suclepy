@@ -11,7 +11,7 @@ class Analyzer:
         self.report = {}
 
     def check_missing(self):
-        """Check missing values"""
+        """Check missing values"""      
         missing = self.df.isnull().sum().to_dict()
         self.report["missing_values"] = missing
         return missing

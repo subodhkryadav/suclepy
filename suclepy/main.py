@@ -4,8 +4,6 @@ import pandas as pd
 from suclepy.core.cleaner import Cleaner
 from suclepy.core.reporter import CleaningReport
 
-
-
 def auto_clean(data):
     """
     Auto clean data from file path or pandas DataFrame.

@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="suclepy",
-    version="1.0.0",
+    version="1.0.1",
     author="Subodh Kumar Yadav",
     author_email="subodhkumary933@gmail.com",
     description="SUCLEPY — Smart Universal Cleaner Library for Python",

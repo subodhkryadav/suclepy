@@ -1,36 +1,34 @@
-"""
-Validator module for suclepy
-Performs basic validation on cleaned dataset
-"""
+# suclepy/core/validator.py
 
-import pandas as pd
+import re
+from dateutil.parser import parse
 
-class Validator:
-    def __init__(self, df: pd.DataFrame):
-        self.df = df
-        self.report = {}
+def is_valid_email(email: str) -> bool:
+    """
+    Check if the email is valid.
+    """
+    if not isinstance(email, str) or "@" not in email:
+        return False
+    # Simple regex for basic validation
+    pattern = r"^[\w\.-]+@[\w\.-]+\.\w+$"
+    return bool(re.match(pattern, email))
 
-    def validate_types(self):
-        """Validate column types"""
-        types = {col: str(dtype) for col, dtype in self.df.dtypes.items()}
-        self.report["column_types"] = types
-        return types
+def is_numeric(value) -> bool:
+    """
+    Check if a value is numeric.
+    """
+    try:
+        float(value)
+        return True
+    except (ValueError, TypeError):
+        return False
 
-    def validate_missing(self):
-        """Check if any missing values remain"""
-        missing = self.df.isnull().sum().sum()
-        self.report["missing_remaining"] = missing
-        return missing
-
-    def validate_duplicates(self):
-        """Check if any duplicates remain"""
-        duplicates = self.df.duplicated().sum()
-        self.report["duplicates_remaining"] = duplicates
-        return duplicates
-
-    def run(self):
-        """Run full validation"""
-        self.validate_types()
-        self.validate_missing()
-        self.validate_duplicates()
-        return self.report
+def is_valid_date(value) -> bool:
+    """
+    Check if a value can be parsed as a date.
+    """
+    try:
+        parse(str(value), dayfirst=True)
+        return True
+    except Exception:
+        return False

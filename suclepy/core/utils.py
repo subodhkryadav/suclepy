@@ -1,132 +1,95 @@
 # suclepy/core/utils.py
 
-"""
-Utility functions for SUCLEPY
----------------------------------
-These functions are helper methods for data cleaning and preprocessing.
-"""
-
 import pandas as pd
 import numpy as np
-from email.utils import parseaddr
 from dateutil.parser import parse
 
-# ---------------------------
-# Missing values handling
-# ---------------------------
-def fill_missing(df: pd.DataFrame, strategy="mean") -> pd.DataFrame:
-    """
-    Fill missing values in a DataFrame based on strategy.
-    """
-    df_copy = df.copy()
-    
-    for col in df_copy.columns:
-        if df_copy[col].isna().sum() == 0:
-            continue
-        
-        if strategy == "mean" and pd.api.types.is_numeric_dtype(df_copy[col]):
-            df_copy[col] = df_copy[col].fillna(df_copy[col].mean())
-        elif strategy == "median" and pd.api.types.is_numeric_dtype(df_copy[col]):
-            df_copy[col] = df_copy[col].fillna(df_copy[col].median())
-        elif strategy == "mode":
-            df_copy[col] = df_copy[col].fillna(df_copy[col].mode()[0])
-        elif strategy == "drop":
-            df_copy = df_copy.dropna(subset=[col])
-    
-    return df_copy
+# -----------------------------
+# 1️⃣ Drop duplicates
+# -----------------------------
+def drop_duplicates(df: pd.DataFrame):
+    before = len(df)
+    df = df.drop_duplicates()
+    removed = before - len(df)
+    return df, removed
 
-# ---------------------------
-# Duplicates handling
-# ---------------------------
-def drop_duplicates(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Remove duplicate rows from a DataFrame.
-    
-    Parameters:
-        df (pd.DataFrame): Input DataFrame
-    
-    Returns:
-        pd.DataFrame: DataFrame without duplicates
-    """
-    return df.drop_duplicates()
-
-
-
-# palceholder
-# suclepy/core/utils.py
-
-def infer_column_role(df):
-    """
-    Dummy placeholder for column role inference.
-    Returns a dictionary with column names as keys and roles as values.
-    """
-    roles = {}
+# -----------------------------
+# 2️⃣ Fill missing values
+# -----------------------------
+def fill_missing(df: pd.DataFrame):
+    missing_count = 0
     for col in df.columns:
-        if pd.api.types.is_numeric_dtype(df[col]):
-            roles[col] = "numeric"
-        elif pd.api.types.is_datetime64_any_dtype(df[col]):
-            roles[col] = "date"
-        elif df[col].dtype == object:
-            # Simple heuristic
-            if "@" in df[col].dropna().astype(str).iloc[0]:
-                roles[col] = "email"
-            else:
-                roles[col] = "text"
+        if df[col].dtype in [np.float64, np.int64]:
+            missing = df[col].isnull().sum()
+            df[col].fillna(df[col].median(), inplace=True)
+            missing_count += missing
         else:
-            roles[col] = "unknown"
-    return roles
+            missing = df[col].isnull().sum()
+            df[col].fillna("abcd", inplace=True)
+            missing_count += missing
+    return df, missing_count
+
+# -----------------------------
+# 3️⃣ Validate & fix emails
+# -----------------------------
+def validate_emails(df: pd.DataFrame):
+    email_count = 0
+    if "Email" in df.columns:
+        for i, val in df["Email"].items():
+            # Check if invalid: None, NaN, missing '@', or missing domain
+            if not isinstance(val, str) or "@" not in val or "." not in val.split("@")[-1]:
+                if isinstance(val, str) and "@" in val:
+                    # Partially invalid email (like 'subodh@') → add gmail.com
+                    local = val.split("@")[0]
+                    df.at[i, "Email"] = f"{local}@gmail.com"
+                else:
+                    # Completely missing or invalid → use default
+                    df.at[i, "Email"] = "abc@gmail.com"
+                email_count += 1
+    return df, email_count
 
 
-# ---------------------------
-# Email validation
-# ---------------------------
-def validate_email(email: str) -> bool:
+# -----------------------------
+# -----------------------------
+# 4️⃣ Auto-fill missing strings
+# -----------------------------
+def auto_fill_strings(df: pd.DataFrame):
     """
-    Simple email validation using parseaddr.
-    
-    Parameters:
-        email (str): Email string
-    
-    Returns:
-        bool: True if valid, False otherwise
+    Fill missing string/object type columns with 'abcd' and return count.
+    Handles: None, '', 'null', 'NaN', ' '
     """
-    if not isinstance(email, str) or "@" not in email:
-        return False
-    name, addr = parseaddr(email)
-    return "@" in addr and "." in addr.split("@")[-1]
+    fill_count = 0
+    for col in df.columns:
+        if df[col].dtype == object:
+            for i, val in df[col].items():
+                if val in [None, "", "null", "NaN", " "]:
+                    df.at[i, col] = "abcd"
+                    fill_count += 1
+    return df, fill_count
 
-# ---------------------------
-# Date parsing
-# ---------------------------
-def parse_date(date_str: str):
-    """
-    Parse a date string to standardized YYYY-MM-DD format.
-    
-    Parameters:
-        date_str (str): Input date string
-    
-    Returns:
-        str: Standardized date string or None if invalid
-    """
-    try:
-        return parse(date_str).strftime("%Y-%m-%d")
-    except Exception:
-        return None
 
-# ---------------------------
-# Text normalization
-# ---------------------------
-def normalize_text(text: str) -> str:
-    """
-    Capitalize first letter of each word and strip spaces.
-    
-    Parameters:
-        text (str): Input text string
-    
-    Returns:
-        str: Normalized text
-    """
-    if not isinstance(text, str):
-        return text
-    return " ".join(word.capitalize() for word in text.strip().split())
 
+
+# -----------------------------
+# 5️⃣ Standardize dates
+# -----------------------------
+def standardize_dates(df: pd.DataFrame):
+    date_count = 0
+    default_date_count = 0
+    date_cols = [col for col in df.columns if "date" in col.lower()]
+
+    for col in date_cols:
+        for i, val in df[col].items():
+            if pd.isnull(val):
+                df.at[i, col] = "00-00-0000"
+                default_date_count += 1
+            else:
+                try:
+                    dt = parse(str(val), dayfirst=True)
+                    df.at[i, col] = dt.strftime("%d-%m-%Y")
+                    date_count += 1
+                except Exception:
+                    df.at[i, col] = "00-00-0000"
+                    default_date_count += 1
+
+    return df, date_count, default_date_count

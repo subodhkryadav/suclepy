@@ -3,44 +3,41 @@
 import pandas as pd
 
 class CleaningReport:
-    """
-    CleaningReport stores the result of a cleaning operation
-    and generates a summary in the documented format.
-    """
-
-    def __init__(self, cleaned_df, report_dict=None):
+    def __init__(self, cleaned_df: pd.DataFrame, stats: dict):
         """
-        cleaned_df: pandas DataFrame after cleaning
-        report_dict: Optional dictionary with stats about cleaning
+        Initializes CleaningReport with cleaned DataFrame and stats dictionary
         """
         self.cleaned_df = cleaned_df
-        self.report = report_dict or {}
-        self._generate_summary()
+        self.stats = stats
 
-    def _generate_summary(self):
-        # Default keys in case report_dict is empty
-        self.summary_dict = {
-            "Total Rows (before)": self.report.get("total_rows", len(self.cleaned_df)),
-            "Rows After Cleaning": self.report.get("rows_after", len(self.cleaned_df)),
-            "Duplicates Removed": self.report.get("duplicates_removed", 0),
-            "Missing Values Filled": self.report.get("missing_filled", 0),
-            "Invalid Emails Found": self.report.get("invalid_emails", 0),
-            "Standardized Columns": self.report.get("standardized_cols", len(self.cleaned_df.columns)),
-            "Status": self.report.get("status", "SUCCESS ✅")
-        }
-
+    # -----------------------------
+    # Print summary of cleaning
+    # -----------------------------
     def summary(self):
-        # Nicely formatted summary string
-        lines = ["SUCLEPY CLEANING REPORT", "-"*30]
-        for key, value in self.summary_dict.items():
-            lines.append(f"{key}: {value}")
+        lines = []
+        lines.append("SUCLEPY CLEANING REPORT")
+        lines.append("-" * 30)
+        lines.append(f"Total Rows (before): {self.stats.get('total_rows_before', 0)}")
+        lines.append(f"Rows After Cleaning: {self.stats.get('rows_after_cleaning', 0)}")
+        lines.append(f"Duplicates Removed: {self.stats.get('duplicates_removed', 0)}")
+        lines.append(f"Missing Values Filled: {self.stats.get('missing_values_filled', 0)}")
+        lines.append(f"Invalid Emails Fixed: {self.stats.get('invalid_emails_fixed', 0)}")
+        lines.append(f"Missing Strings Filled: {self.stats.get('missing_strings_filled', 0)}")  # <-- changed
+        lines.append(f"Dates Standardized: {self.stats.get('dates_standardized', 0)}")
+        lines.append(f"Default Date Used: {self.stats.get('default_dates_used', 0)}")
+        lines.append(f"Status: SUCCESS ✅")
         return "\n".join(lines)
 
-    def to_csv(self, filepath="cleaned_data.csv"):
-        """Export cleaned DataFrame to CSV"""
-        self.cleaned_df.to_csv(filepath, index=False)
-        print(f"Cleaned data saved to {filepath}")
 
+    # -----------------------------
+    # Preview cleaned data
+    # -----------------------------
     def head(self, n=5):
-        """Return top n rows of cleaned DataFrame"""
         return self.cleaned_df.head(n)
+
+    # -----------------------------
+    # Export cleaned DataFrame to CSV
+    # -----------------------------
+    def to_csv(self, filepath):
+        self.cleaned_df.to_csv(filepath, index=False)
+        print(f"File saved as {filepath}")
