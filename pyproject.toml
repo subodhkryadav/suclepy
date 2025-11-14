@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "suclepy"
-version = "1.0.0"
+version = "1.0.1"
 description = "SUCLEPY — Smart Universal Cleaner Library for Python"
 authors = [
     { name="Subodh Kumar Yadav", email="subodhkumary933@gmail.com" }
