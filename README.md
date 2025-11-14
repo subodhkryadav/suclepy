@@ -1,5 +1,5 @@
 # 🧹 SUCLEPY — Smart Universal Cleaner Library for Python
-![SUCLEPY Library](suclepy/assets/library_image.png)
+![SUCLEPY Library](assets/library_image.png)
 ![Python](https://img.shields.io/badge/python-3.11+-blue?style=for-the-badge)
 ![Version](https://img.shields.io/badge/version-1.0.1-green?style=for-the-badge)
 ![License](https://img.shields.io/badge/license-MIT-yellow?style=for-the-badge)
